@@ -1,4 +1,4 @@
-# PropsTableWrapper - React Prop Inspector
+# React Prop Inspector
 
 [![npm version](https://badge.fury.io/js/react-prop-inspector.svg)](https://badge.fury.io/js/react-prop-inspector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
