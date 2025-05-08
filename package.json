@@ -1,0 +1,45 @@
+{
+  "name": "react-prop-inspector",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "babel src --out-dir lib && cp src/*.css lib",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cinfinit/react-prop-inspector.git"
+  },
+  "keywords": [
+    "react",
+    "component",
+    "inspector",
+    "props",
+    "inspector"
+  ],
+  "author": "cinfinit",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cinfinit/react-prop-inspector/issues"
+  },
+  "homepage": "https://github.com/cinfinit/react-prop-inspector#readme",
+  "description": "",
+  "dependencies": {
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.27.1",
+    "@babel/core": "^7.27.1",
+    "@babel/preset-env": "^7.27.1",
+    "@babel/preset-react": "^7.27.1"
+  }
+}
