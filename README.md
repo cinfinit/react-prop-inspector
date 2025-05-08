@@ -1,6 +1,6 @@
 # PropsTableWrapper - React Prop Inspector
 
-[![npm version](https://badge.fury.io/js/your-package-name.svg)](https://badge.fury.io/js/react-prop-inspector)
+[![npm version](https://badge.fury.io/js/react-prop-inspector.svg)](https://badge.fury.io/js/react-prop-inspector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A React component that wraps your components to provide an on-page, toggleable props inspector table. Useful for debugging and understanding the props being passed to a component in real-time.
