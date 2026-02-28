@@ -1,7 +1,6 @@
 # React Prop Inspector
 
-[![npm version](https://badge.fury.io/js/react-prop-inspector.svg)](https://badge.fury.io/js/react-prop-inspector)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NPM version](https://img.shields.io/npm/v/react-prop-inspector.svg?style=flat)](https://www.npmjs.com/package/react-prop-inspector) [![NPM downloads](https://img.shields.io/npm/dm/react-prop-inspector.svg?style=flat)](https://npmjs.org/package/react-prop-inspector)
 
 A React component that wraps your components to provide an on-page, toggleable props inspector table. Useful for debugging and understanding the props being passed to a component in real-time.
 

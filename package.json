@@ -27,11 +27,7 @@
     "url": "https://github.com/cinfinit/react-prop-inspector/issues"
   },
   "homepage": "https://github.com/cinfinit/react-prop-inspector#readme",
-  "description": "",
-  "dependencies": {
-    "react": "^17.0.0 || ^18.0.0",
-    "react-dom": "^17.0.0 || ^18.0.0"
-  },
+  "description": "A lightweight React component for inspecting and visualizing props of any child component in real-time.",
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
