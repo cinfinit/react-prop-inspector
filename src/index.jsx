@@ -1,38 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import './PropsTableWrapper.css';
 
 const PropsTableWrapper = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const wrapperRef = useRef(null);
-  const overlayRef = useRef(null);
   const [collapsedKeys, setCollapsedKeys] = useState({});
   const [columnWidths, setColumnWidths] = useState({
     propName: 200,
-    type: 100,
+    type: 120,
     propValue: 300,
   });
 
-  const props = children.props || {};
+  const wrapperRef = useRef(null);
+  const overlayRef = useRef(null);
 
-  const potentialProps = [];
-  if (children.type && children.type.length) {
-    const componentStr = children.type.toString();
-    const match = componentStr.match(/\(([^)]*)\)/);
-    if (match && match[1]) {
-      potentialProps.push(
-        ...match[1]
-          .split(',')
-          .map((param) => param.trim().replace(/[{}]/g, ''))
-          .map((param) => param.replace(/\s+/g, ''))
-          .filter(Boolean)
-      );
-    }
-  }
+  // ✅ Only rely on actual props passed
+  const props = children?.props || {};
 
-  const propEntries = Object.entries(props);
-  const allProps = [
-    ...new Set([...potentialProps, ...propEntries.map(([key]) => key)]),
-  ];
+  const allProps = useMemo(() => Object.keys(props), [props]);
 
   const getType = (value) => {
     if (Array.isArray(value)) return 'array';
@@ -40,10 +24,10 @@ const PropsTableWrapper = ({ children }) => {
     return typeof value;
   };
 
-  const toggleCollapse = (key) => {
+  const toggleCollapse = (path) => {
     setCollapsedKeys((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [path]: !prev[path],
     }));
   };
 
@@ -53,7 +37,7 @@ const PropsTableWrapper = ({ children }) => {
     const startWidth = columnWidths[columnKey];
 
     const onMouseMove = (moveEvent) => {
-      const newWidth = startWidth + (moveEvent.clientX - startX);
+      const newWidth = Math.max(80, startWidth + (moveEvent.clientX - startX));
       setColumnWidths((prev) => ({ ...prev, [columnKey]: newWidth }));
     };
 
@@ -66,57 +50,55 @@ const PropsTableWrapper = ({ children }) => {
     document.addEventListener('mouseup', onMouseUp);
   };
 
-  const renderValue = (key, value, depth = 0) => {
+  const renderValue = (value, path = '', depth = 0) => {
     const isObject = typeof value === 'object' && value !== null;
     const isArray = Array.isArray(value);
     const isCollapsed =
-      collapsedKeys[key] === undefined ? true : collapsedKeys[key];
-
-    const toggle = () => toggleCollapse(key);
+      collapsedKeys[path] === undefined ? true : collapsedKeys[path];
 
     if (isObject) {
+      const keys = isArray ? value : Object.keys(value);
+
       return (
-        <div style={{ paddingLeft: `${depth * 20}px`, fontFamily: 'monospace' }}>
-          <div className="accordion-header" onClick={toggle}>
-            {isArray ? (
-              <span>
-                {isCollapsed ? '▶' : '▼'} {key}: [{value.length}]
-              </span>
-            ) : (
-              <span>
-                {isCollapsed ? '▶' : '▼'} {key}: {Object.keys(value).length}
-              </span>
-            )}
+        <div style={{ paddingLeft: `${depth * 16}px`, fontFamily: 'monospace' }}>
+          <div
+            className="accordion-header"
+            onClick={() => toggleCollapse(path)}
+            style={{ cursor: 'pointer' }}
+          >
+            {isCollapsed ? '▶' : '▼'}{' '}
+            {isArray ? `Array(${value.length})` : `Object(${keys.length})`}
           </div>
 
           {!isCollapsed && (
             <div className="accordion-content">
               {isArray
                 ? value.map((item, index) => (
-                    <div key={index}>
+                    <div key={`${path}-${index}`}>
                       <strong>{index}:</strong>{' '}
-                      {renderValue(`${key}[${index}]`, item, depth + 1)}
+                      {renderValue(item, `${path}[${index}]`, depth + 1)}
                     </div>
                   ))
-                : Object.entries(value).map(([subKey, subValue], index) => (
-                    <div key={index}>
-                      <strong>{subKey}:</strong>{' '}
-                      {renderValue(`${key}.${subKey}`, subValue, depth + 1)}
+                : Object.entries(value).map(([k, v]) => (
+                    <div key={`${path}-${k}`}>
+                      <strong>{k}:</strong>{' '}
+                      {renderValue(v, `${path}.${k}`, depth + 1)}
                     </div>
                   ))}
             </div>
           )}
         </div>
       );
-    } else {
-      return (
-        <span className="console-value">
-          {typeof value === 'string' ? `"${value}"` : String(value)}
-        </span>
-      );
     }
+
+    return (
+      <span className="console-value">
+        {typeof value === 'string' ? `"${value}"` : String(value)}
+      </span>
+    );
   };
 
+  // Close overlay on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -131,17 +113,16 @@ const PropsTableWrapper = ({ children }) => {
 
     if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
     }
 
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () =>
+      document.removeEventListener('mousedown', handleClickOutside);
   }, [isVisible]);
 
   return (
     <div ref={wrapperRef} className="wrapper">
       <div
-        onClick={() => setIsVisible(!isVisible)}
+        onClick={() => setIsVisible((prev) => !prev)}
         className={`pi-button ${isVisible ? 'pi-button-active' : ''}`}
       >
         PI
@@ -150,94 +131,49 @@ const PropsTableWrapper = ({ children }) => {
       {isVisible && (
         <div ref={overlayRef} className="overlay">
           <h4 className="props-inspector-title">Props Inspector</h4>
-          <table className="table" style={{ borderCollapse: 'collapse', width: '100%' }}>
+
+          <table className="table">
             <thead>
               <tr>
-                <th
-                  style={{
-                    width: columnWidths.propName,
-                    border: '1px solid #4A6D7C',
-                    padding: '10px',
-                    position: 'relative',
-                  }}
-                >
-                  Prop Name
-                  <div
+                {['propName', 'type', 'propValue'].map((col) => (
+                  <th
+                    key={col}
                     style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 0,
-                      width: '5px',
-                      cursor: 'col-resize',
-                      height: '100%',
-                      backgroundColor: '#7F8C8D',
+                      width: columnWidths[col],
+                      position: 'relative',
                     }}
-                    onMouseDown={(e) => handleMouseDown(e, 'propName')}
-                  ></div>
-                </th>
+                  >
+                    {col === 'propName'
+                      ? 'Prop Name'
+                      : col === 'type'
+                      ? 'Type'
+                      : 'Prop Value'}
 
-                <th
-                  style={{
-                    width: columnWidths.type,
-                    border: '1px solid #4A6D7C',
-                    padding: '10px',
-                    position: 'relative',
-                  }}
-                >
-                  Type
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 0,
-                      width: '5px',
-                      cursor: 'col-resize',
-                      height: '100%',
-                      backgroundColor: '#7F8C8D',
-                    }}
-                    onMouseDown={(e) => handleMouseDown(e, 'type')}
-                  ></div>
-                </th>
-
-                <th
-                  style={{
-                    width: columnWidths.propValue,
-                    border: '1px solid #4A6D7C',
-                    padding: '10px',
-                    position: 'relative',
-                  }}
-                >
-                  Prop Value
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 0,
-                      width: '5px',
-                      cursor: 'col-resize',
-                      height: '100%',
-                      backgroundColor: '#7F8C8D',
-                    }}
-                    onMouseDown={(e) => handleMouseDown(e, 'propValue')}
-                  ></div>
-                </th>
+                    <div
+                      className="resizer"
+                      onMouseDown={(e) => handleMouseDown(e, col)}
+                    />
+                  </th>
+                ))}
               </tr>
             </thead>
 
             <tbody>
-              {allProps.map((key) => (
-                <tr key={key}>
-                  <td style={{ border: '1px solid #4A6D7C', padding: '10px' }}>{key}</td>
-                  <td style={{ border: '1px solid #4A6D7C', padding: '10px' }}>
-                    {props[key] === undefined
-                      ? 'undefined'
-                      : getType(props[key])}
-                  </td>
-                  <td style={{ border: '1px solid #4A6D7C', padding: '10px' }}>
-                    {renderValue(key, props[key])}
+              {allProps.length === 0 ? (
+                <tr>
+                  <td colSpan="3" style={{ padding: 12 }}>
+                    No props passed
                   </td>
                 </tr>
-              ))}
+              ) : (
+                allProps.map((key) => (
+                  <tr key={key}>
+                    <td>{key}</td>
+                    <td>{getType(props[key])}</td>
+                    <td>{renderValue(props[key], key)}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
